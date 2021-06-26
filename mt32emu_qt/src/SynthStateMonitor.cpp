@@ -15,7 +15,9 @@
  */
 
 #include "SynthStateMonitor.h"
-
+#ifdef WITH_LCDAPI
+#include "Master.h"
+#endif
 #include "SynthRoute.h"
 #include "ui_SynthWidget.h"
 #include "font_6x8.h"
@@ -102,6 +104,9 @@ void SynthStateMonitor::handleSynthStateChange(SynthState state) {
 	enableMonitor(state == SynthState_OPEN);
 	lcdWidget.reset();
 	midiMessageLED.setColor(&COLOR_GRAY);
+#ifdef WITH_LCDAPI
+	Master::getInstance()->getMIDIMessageText()->setText("-");
+#endif
 
 	for (unsigned int i = 0; i < partialCount; i++) {
 		partialStateLED[i]->setColor(&partialStateColor[PartialState_INACTIVE]);
@@ -117,6 +122,9 @@ void SynthStateMonitor::handleMIDIMessagePlayed() {
 	if (ui->synthFrame->isVisible() && synthRoute->getState() == SynthRouteState_OPEN) {
 		midiMessageLED.setColor(&COLOR_GREEN);
 		midiMessageLEDStartNanos = MasterClock::getClockNanos();
+#ifdef WITH_LCDAPI
+		Master::getInstance()->getMIDIMessageText()->setText("*");
+#endif
 	}
 }
 
@@ -158,8 +166,14 @@ void SynthStateMonitor::handleUpdate() {
 	if (midiMessageOn) {
 		midiMessageLED.setColor(&COLOR_GREEN);
 		midiMessageLEDStartNanos = nanosNow;
+#ifdef WITH_LCDAPI
+		Master::getInstance()->getMIDIMessageText()->setText("*");
+#endif
 	} else if ((nanosNow - midiMessageLEDStartNanos) > MIDI_MESSAGE_LED_MINIMUM_NANOS) {
 		midiMessageLED.setColor(&COLOR_GRAY);
+#ifdef WITH_LCDAPI
+		Master::getInstance()->getMIDIMessageText()->setText("-");
+#endif
 	}
 }
 
@@ -228,7 +242,9 @@ void LCDWidget::paintEvent(QPaintEvent *) {
 	int xat, xstart, yat;
 	xstart = 0;
 	yat = 0;
-
+#ifdef WITH_LCDAPI
+	QByteArray qbHW(lcdText);
+#endif
 	for (int i = 0; i < 20; i++) {
 		unsigned char c;
 		c = 0x20;
@@ -248,6 +264,9 @@ void LCDWidget::paintEvent(QPaintEvent *) {
 			unsigned char fval;
 			if (maskedChar[i] && (t != 7) && (lcdState == DISPLAYING_PART_STATE)) {
 				fval = 0x1f;
+#ifdef WITH_LCDAPI
+				qbHW[i] = 0xff;
+#endif
 			} else {
 				fval = Font_6x8[c][t];
 			}
@@ -264,6 +283,18 @@ void LCDWidget::paintEvent(QPaintEvent *) {
 		}
 		xstart += 12;
 	}
+#ifdef WITH_LCDAPI	
+	try 
+	{
+            if (!qbHW.isNull())
+                Master::getInstance()->getStatusText()->set(qbHW.replace("\"","\\\"").toStdString(),1,3);
+        }
+        catch (lcdapi::LCDException ex)
+        {
+            qDebug() << "Exception setting text:" << QString::fromStdString(ex.what()).replace("\"","'");
+            qDebug() << "Bad message was:" << qPrintable(qbHW);
+        }
+#endif
 }
 
 void LCDWidget::handleLCDMessageDisplayed(const QString useText) {

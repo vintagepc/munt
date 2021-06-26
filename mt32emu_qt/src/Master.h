@@ -3,6 +3,10 @@
 
 #include <QObject>
 
+#ifdef WITH_LCDAPI
+#include <LCDHeaders.h>
+#endif 
+
 #include "SynthRoute.h"
 
 class AudioDriver;
@@ -31,6 +35,17 @@ private:
 	QString defaultAudioDriverId;
 	QString defaultAudioDeviceName;
 	qint64 lastAudioDeviceScan;
+
+#ifdef WITH_LCDAPI
+
+	lcdapi::LCDClient* hwLCD;
+	lcdapi::LCDScreen* hwScreen;
+	lcdapi::LCDText* scr1Title;
+	lcdapi::LCDScroller* scr1ROM;
+	lcdapi::LCDText* scr1Status;
+	lcdapi::LCDText* scr1Message;
+
+#endif
 
 	unsigned int maxSessions;
 
@@ -77,6 +92,14 @@ public:
 	void setMidiPortProperties(MidiPropertiesDialog *mpd, MidiSession *midiSession);
 	QString getDefaultROMSearchPath();
 	void setAudioFileWriterSynth(const QSynth *);
+
+#ifdef WITH_LCDAPI
+	// LCD widget hackery.
+	lcdapi::LCDText* getMIDIMessageText(){ return scr1Message;}
+	lcdapi::LCDScroller* getROMText(){ return scr1ROM;}
+	lcdapi::LCDText* getStatusText(){ return scr1Status;}
+
+#endif
 
 private slots:
 	void createMidiSession(MidiSession **returnVal, MidiDriver *midiDriver, QString name);

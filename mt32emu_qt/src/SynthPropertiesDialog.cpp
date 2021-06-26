@@ -52,6 +52,9 @@ void SynthPropertiesDialog::showEvent(QShowEvent *) {
 void SynthPropertiesDialog::on_changeROMSetButton_clicked() {
 	rsd.exec();
 	ui->romSetLabel->setText(getROMSetDescription());
+#ifdef WITH_LCDAPI
+	Master::getInstance()->getROMText()->setText(getROMSetDescription().toStdString());
+#endif
 }
 
 void SynthPropertiesDialog::on_midiDelayEmuComboBox_currentIndexChanged(int index) {
@@ -225,6 +228,9 @@ void SynthPropertiesDialog::restoreDefaults() {
 void SynthPropertiesDialog::loadSynthProfile(bool reloadFromSynthRoute) {
 	if (reloadFromSynthRoute) synthRoute->getSynthProfile(synthProfile);
 	ui->romSetLabel->setText(getROMSetDescription());
+#ifdef WITH_LCDAPI	
+	Master::getInstance()->getROMText()->setText(getROMSetDescription().toStdString());
+#endif
 	rsd.loadROMInfos();
 	ui->midiDelayEmuComboBox->setCurrentIndex(synthProfile.midiDelayMode);
 	ui->dacEmuComboBox->setCurrentIndex(synthProfile.emuDACInputMode == MT32Emu::DACInputMode_NICE ? MT32Emu::DACInputMode_NICE : synthProfile.emuDACInputMode - 1);
@@ -260,6 +266,9 @@ void SynthPropertiesDialog::saveSynthProfile() {
 	synthRoute->setSynthProfile(synthProfile, name);
 	if (ui->profileCheckBox->isChecked()) master.setDefaultSynthProfileName(name);
 	ui->romSetLabel->setText(getROMSetDescription());
+#ifdef WITH_LCDAPI	
+	Master::getInstance()->getROMText()->setText(getROMSetDescription().toStdString());
+#endif
 	refreshProfileCombo(name);
 }
 

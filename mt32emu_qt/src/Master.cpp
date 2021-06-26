@@ -85,6 +85,47 @@ Master::Master() {
 	instance = this;
 	maxSessions = 0;
 
+#ifdef WITH_LCDAPI
+
+	hwLCD = new lcdapi::LCDClient("localhost", 13666);
+	
+	qDebug() << QString("New client with size %1x%2").arg(hwLCD->getWidth()).arg(hwLCD->getHeight());
+
+	try 
+	{
+	hwScreen = new lcdapi::LCDScreen(hwLCD);
+	hwScreen->setPriority(lcdapi::LCD_PRIORITY_FOREGROUND);
+//	hwScreen->setDuration(100);
+	hwScreen->setHeartBeat(lcdapi::LCD_HEARTBEAT_OFF);
+	lcdapi::LCDText* test = new lcdapi::LCDText(hwScreen);
+	test->set("Pi-T-32 Emulator",3,1);
+	lcdapi::LCDIcon* pIcon = new lcdapi::LCDIcon(hwScreen);
+	pIcon->set(lcdapi::LCD_ICON_BLOCK_FILLED,1,1);
+	hwScreen->add(pIcon);
+	pIcon = new lcdapi::LCDIcon(hwScreen);
+	pIcon->set(lcdapi::LCD_ICON_BLOCK_FILLED,hwLCD->getWidth(),1);
+	hwScreen->add(pIcon);
+	hwScreen->add(test);
+	scr1ROM = new lcdapi::LCDScroller(hwScreen);
+	scr1ROM->set("  (No ROM loaded.)",1,2);
+	scr1ROM->setWidth(20);
+	scr1ROM->setSpeed(6);
+	hwScreen->add(scr1ROM);
+	scr1Status = new lcdapi::LCDText("1 2 3 4 5 R |vol:100",1,3);
+	hwScreen->add(scr1Status);
+	lcdapi::LCDText* pMsg = new lcdapi::LCDText(hwScreen);
+	pMsg->set("MIDI Message:",1,4);
+	hwScreen->add(pMsg);
+	scr1Message = new lcdapi::LCDText("-",15,4);
+	hwScreen->add(scr1Message);
+	}
+	catch (lcdapi::LCDException e)
+	{
+	qDebug()<<QString().fromStdString(e.what());
+	}
+
+#endif
+
 	moveToThread(QCoreApplication::instance()->thread());
 
 	MasterClock::init();

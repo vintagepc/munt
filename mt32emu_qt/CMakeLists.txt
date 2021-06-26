@@ -171,6 +171,13 @@ if(PORTAUDIO_FOUND)
   )
 endif()
 
+find_package(LCDapi REQUIRED)
+if (LCDAPI_FOUND)
+  add_definitions(-DWITH_LCDAPI)
+	include_directories(${LCDAPI_INCLUDE})
+	set(EXT_LIBS ${EXT_LIBS} ${LCDAPI_LIBRARY})
+endif()
+
 find_package(ALSA)
 if(ALSA_FOUND)
   add_definitions(-DWITH_ALSA_AUDIO_DRIVER)
@@ -307,6 +314,7 @@ endif()
 
 target_link_libraries(mt32emu-qt
   ${EXT_LIBS}
+  lcdapi
 )
 
 if(WIN32)

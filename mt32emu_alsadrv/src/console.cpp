@@ -26,6 +26,10 @@
 
 #include <mt32emu/mt32emu.h>
 
+#ifdef WITH_LCDAPI
+	#include <LCDHeaders.h>
+#endif 
+
 #include "alsadrv.h"
 #include "drvreport.h"
 
